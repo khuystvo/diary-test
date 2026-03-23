@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конструктор документов СПО</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --primary:#2563eb; --primary-dark:#1d4ed8; --primary-light:#dbeafe;
+            --success:#16a34a; --success-light:#dcfce7;
+            --warning:#f59e0b; --warning-light:#fef3c7;
+            --danger:#dc2626; --danger-light:#fee2e2;
+            --g50:#f9fafb; --g100:#f3f4f6; --g200:#e5e7eb; --g300:#d1d5db;
+            --g400:#9ca3af; --g500:#6b7280; --g600:#4b5563; --g700:#374151;
+            --g800:#1f2937; --g900:#111827;
+            --radius:8px; --radius-lg:12px;
+            --shadow:0 1px 3px rgba(0,0,0,.1); --shadow-md:0 4px 6px rgba(0,0,0,.1);
+            --shadow-lg:0 10px 15px rgba(0,0,0,.1);
+            --tr:all .2s ease;
+        }
+        body { font-family:'Inter',-apple-system,sans-serif; background:var(--g50); color:var(--g800); line-height:1.6; }
+
+        /* HEADER */
+        .header { background:#fff; border-bottom:1px solid var(--g200); padding:0 24px; height:60px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:var(--shadow); }
+        .header-left { display:flex; align-items:center; gap:12px; }
+        .header-left i { font-size:24px; color:var(--primary); }
+        .header-left h1 { font-size:18px; font-weight:600; }
+        .header-right { display:flex; align-items:center; gap:12px; }
+        .user-info { font-size:14px; color:var(--g600); }
+
+        /* BUTTONS */
+        .btn { display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border:none; border-radius:var(--radius); font-size:14px; font-weight:500; cursor:pointer; transition:var(--tr); font-family:inherit; white-space:nowrap; }
+        .btn:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+        .btn:active { transform:translateY(0); }
+        .btn-primary { background:var(--primary); color:#fff; }
+        .btn-primary:hover { background:var(--primary-dark); }
+        .btn-success { background:var(--success); color:#fff; }
+        .btn-success:hover { background:#15803d; }
+        .btn-outline { background:#fff; color:var(--g700); border:1px solid var(--g300); }
+        .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+        .btn-danger { background:var(--danger); color:#fff; }
+        .btn-block { width:100%; justify-content:center; }
+        .btn-sm { padding:4px 10px; font-size:12px; }
+        .btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+        /* UPLOAD */
+        .upload-section { max-width:600px; margin:80px auto; padding:0 24px; }
+        .upload-area { border:2px dashed var(--g300); border-radius:var(--radius-lg); padding:60px 40px; text-align:center; background:#fff; transition:var(--tr); cursor:pointer; }
+        .upload-area:hover, .upload-area.drag-over { border-color:var(--primary); background:var(--primary-light); }
+        .upload-icon { font-size:48px; color:var(--primary); margin-bottom:16px; }
+        .upload-area h2 { font-size:20px; margin-bottom:8px; }
+        .upload-area p { color:var(--g500); margin-bottom:24px; }
+        .file-info { margin-top:16px; padding:12px; background:var(--success-light); border-radius:var(--radius); color:var(--success); font-weight:500; }
+
+        /* PARSING */
+        .parsing-section { max-width:400px; margin:100px auto; padding:0 24px; }
+        .parsing-card { background:#fff; border-radius:var(--radius-lg); padding:40px; text-align:center; box-shadow:var(--shadow-lg); }
+        .spinner { width:48px; height:48px; border:4px solid var(--g200); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 20px; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .progress-bar { height:6px; background:var(--g200); border-radius:3px; margin-top:20px; overflow:hidden; }
+        .progress-fill { height:100%; background:var(--primary); border-radius:3px; width:0%; transition:width .3s ease; }
+
+        /* EDITOR LAYOUT */
+        .editor-section { display:flex; height:calc(100vh - 60px); }
+        .sections-nav { width:300px; min-width:300px; background:#fff; border-right:1px solid var(--g200); display:flex; flex-direction:column; overflow-y:auto; }
+        .nav-header { padding:16px 20px; border-bottom:1px solid var(--g200); display:flex; align-items:center; justify-content:space-between; }
+        .nav-header h3 { font-size:14px; color:var(--g600); display:flex; align-items:center; gap:8px; }
+        .changes-badge { background:var(--warning); color:#fff; font-size:12px; font-weight:600; padding:2px 8px; border-radius:12px; min-width:24px; text-align:center; }
+        .sections-list { list-style:none; flex:1; overflow-y:auto; padding:8px 0; }
+        .sections-list li { padding:10px 20px; cursor:pointer; font-size:13px; color:var(--g600); border-left:3px solid transparent; transition:var(--tr); display:flex; align-items:center; gap:8px; }
+        .sections-list li:hover { background:var(--g50); color:var(--g800); }
+        .sections-list li.active { background:var(--primary-light); color:var(--primary); border-left-color:var(--primary); font-weight:500; }
+        .sections-list li .section-badge { margin-left:auto; font-size:11px; background:var(--g200); color:var(--g600); padding:1px 6px; border-radius:8px; }
+        .sections-list li.has-changes .section-badge { background:var(--warning-light); color:var(--warning); }
+        .nav-actions { padding:16px 20px; border-top:1px solid var(--g200); display:flex; flex-direction:column; gap:8px; }
+
+        /* EDITOR CONTENT */
+        .editor-content { flex:1; overflow-y:auto; padding:24px 32px; background:var(--g50); }
+        .editor-panel { display:none; }
+        .editor-panel.active { display:block; }
+        .panel-header { margin-bottom:24px; }
+        .panel-header h2 { font-size:20px; color:var(--g900); margin-bottom:4px; }
+        .panel-header p { color:var(--g500); font-size:14px; }
+
+        /* FIELDS */
+        .field-group { background:#fff; border:1px solid var(--g200); border-radius:var(--radius-lg); padding:20px; margin-bottom:16px; transition:var(--tr); }
+        .field-group:hover { border-color:var(--g300); box-shadow:var(--shadow); }
+        .field-group.changed { border-color:var(--warning); border-left:4px solid var(--warning); }
+        .field-label { font-size:14px; font-weight:600; color:var(--g800); margin-bottom:4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .field-label .tag { font-size:10px; font-weight:500; padding:2px 6px; border-radius:4px; text-transform:uppercase; }
+        .tag-paragraph { background:#ede9fe; color:#7c3aed; }
+        .tag-table { background:#e0f2fe; color:#0284c7; }
+        .tag-block { background:#fef3c7; color:#d97706; }
+        .field-description { font-size:12px; color:var(--g500); margin-bottom:12px; }
+        .field-input { width:100%; padding:10px 14px; border:1px solid var(--g300); border-radius:var(--radius); font-size:14px; font-family:inherit; line-height:1.5; transition:var(--tr); background:var(--g50); resize:vertical; }
+        .field-input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-light); background:#fff; }
+        .field-input.changed { border-color:var(--warning); background:var(--warning-light); }
+        .field-actions { display:flex; align-items:center; gap:8px; margin-top:8px; }
+        .field-status { font-size:12px; color:var(--g400); }
+        .field-status.modified { color:var(--warning); font-weight:500; }
+
+        /* TOAST */
+        .toast-container { position:fixed; top:72px; right:24px; z-index:1000; display:flex; flex-direction:column; gap:8px; }
+        .toast { background:#fff; border-radius:var(--radius); padding:12px 20px; box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:10px; font-size:14px; animation:slideIn .3s ease; min-width:280px; border-left:4px solid var(--g400); transition:var(--tr); }
+        .toast.success { border-left-color:var(--success); }
+        .toast.error { border-left-color:var(--danger); }
+        .toast.warning { border-left-color:var(--warning); }
+        .toast.info { border-left-color:var(--primary); }
+        @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+        /* MODAL */
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:200; display:flex; align-items:center; justify-content:center; }
+        .modal { background:#fff; border-radius:var(--radius-lg); width:90%; max-width:500px; max-height:80vh; overflow-y:auto; box-shadow:var(--shadow-lg); }
+        .modal-header { padding:16px 20px; border-bottom:1px solid var(--g200); display:flex; justify-content:space-between; align-items:center; }
+        .modal-close { background:none; border:none; font-size:24px; cursor:pointer; color:var(--g400); }
+        .modal-body { padding:20px; }
+        .modal-footer { padding:12px 20px; border-top:1px solid var(--g200); display:flex; justify-content:flex-end; gap:8px; }
+
+        /* RESPONSIVE */
+        @media(max-width:768px) {
+            .editor-section { flex-direction:column; }
+            .sections-nav { width:100%; min-width:auto; max-height:200px; }
+            .editor-content { padding:16px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <div class="header-left">
+                <i class="fas fa-file-word"></i>
+                <h1>Конструктор документов СПО</h1>
+            </div>
+            <div class="header-right">
+                <span id="user-info" class="user-info" style="display:none;"></span>
+                <button id="btn-auth" class="btn btn-outline" onclick="handleAuth()">
+                    <i class="fas fa-sign-in-alt"></i> Войти
+                </button>
+            </div>
+        </header>
+
+        <!-- ЗАГРУЗКА -->
+        <section id="upload-section" class="upload-section">
+            <div class="upload-area" id="upload-area">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <h2>Загрузите файл рабочей программы</h2>
+                <p>Перетащите .docx файл сюда или нажмите для выбора</p>
+                <input type="file" id="file-input" accept=".docx" hidden>
+                <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                    <i class="fas fa-folder-open"></i> Выбрать файл
+                </button>
+                <div id="file-info" class="file-info" style="display:none;"></div>
+            </div>
+        </section>
+
+        <!-- ПАРСИНГ -->
+        <section id="parsing-section" class="parsing-section" style="display:none;">
+            <div class="parsing-card">
+                <div class="spinner"></div>
+                <h3>Анализирую структуру документа...</h3>
+                <p id="parsing-status">Чтение файла</p>
+                <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+            </div>
+        </section>
+
+        <!-- РЕДАКТОР -->
+        <section id="editor-section" class="editor-section" style="display:none;">
+            <nav class="sections-nav">
+                <div class="nav-header">
+                    <h3><i class="fas fa-list"></i> Разделы</h3>
+                    <span class="changes-badge" id="changes-badge" style="display:none;">0</span>
+                </div>
+                <ul id="sections-list" class="sections-list"></ul>
+                <div class="nav-actions">
+                    <button class="btn btn-success btn-block" id="btn-save" onclick="saveDocument()">
+                        <i class="fas fa-download"></i> Сохранить и скачать
+                    </button>
+                    <button class="btn btn-outline btn-block" onclick="saveToFirebase()">
+                        <i class="fas fa-cloud-upload-alt"></i> Сохранить в облако
+                    </button>
+                    <button class="btn btn-outline btn-block" onclick="loadFromFirebase()">
+                        <i class="fas fa-cloud-download-alt"></i> Загрузить из облака
+                    </button>
+                    <button class="btn btn-outline btn-block" onclick="resetAll()">
+                        <i class="fas fa-undo"></i> Сбросить всё
+                    </button>
+                    <button class="btn btn-outline btn-block" onclick="loadNewFile()">
+                        <i class="fas fa-file-upload"></i> Новый файл
+                    </button>
+                </div>
+            </nav>
+            <main class="editor-content">
+                <div id="editor-panels" class="editor-panels"></div>
+            </main>
+        </section>
+    </div>
+
+    <!-- МОДАЛКА -->
+    <div id="modal-overlay" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title"></h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer" id="modal-footer"></div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- СКРИПТЫ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+    <script>
+    // ===================== FIREBASE CONFIG =====================
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCy0hz_PHMGUX2M52Wnwb0C9nEnBBfeq8",
+        authDomain: "my-diary-e223c.firebaseapp.com",
+        databaseURL: "https://my-diary-e223c-default-rtdb.firebaseio.com",
+        projectId: "my-diary-e223c",
+        storageBucket: "my-diary-e223c.firebasestorage.app",
+        messagingSenderId: "903986378920",
+        appId: "1:903986378920:web:b6ebc6691f6d767f78aa9d"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+    // ===================== DOCX PARSER =====================
+    class DocxParser {
+        constructor() {
+            this.zip = null;
+            this.xmlDoc = null;
+            this.paragraphs = [];
+            this.tables = [];
+            this.sections = {};
+            this.ns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+        }
+
+        async parse(arrayBuffer) {
+            this.zip = await JSZip.loadAsync(arrayBuffer);
+            const xmlStr = await this.zip.file('word/document.xml').async('string');
+            this.xmlDoc = new DOMParser().parseFromString(xmlStr, 'application/xml');
+
+            this._extractParagraphs();
+            this._extractTables();
+
+            this._parseTitlePage();
+            this._parsePassport();
+            this._parseThematicPlan();
+            this._parseConditions();
+            this._parseControl();
+            this._parseMethods();
+
+            return this.sections;
+        }
+
+        _extractParagraphs() {
+            const body = this.xmlDoc.getElementsByTagNameNS(this.ns, 'body')[0];
+            if (!body) return;
+            let idx = 0;
+            for (let i = 0; i < body.childNodes.length; i++) {
+                const node = body.childNodes[i];
+                if (node.localName === 'p') {
+                    this.paragraphs.push({ index: idx, node, text: this._getText(node) });
+                    idx++;
+                }
+            }
+        }
+
+        _extractTables() {
+            const tbls = this.xmlDoc.getElementsByTagNameNS(this.ns, 'tbl');
+            for (let i = 0; i < tbls.length; i++) {
+                const tbl = tbls[i];
+                const trs = [];
+                const rows = tbl.getElementsByTagNameNS(this.ns, 'tr');
+                for (let r = 0; r < rows.length; r++) {
+                    const cells = rows[r].getElementsByTagNameNS(this.ns, 'tc');
+                    const rowData = [];
+                    for (let c = 0; c < cells.length; c++) {
+                        rowData.push({ node: cells[c], text: this._getText(cells[c]) });
+                    }
+                    trs.push(rowData);
+                }
+                this.tables.push({ index: i, node: tbl, rows: trs });
+            }
+        }
+
+        _getText(node) {
+            const ts = node.getElementsByTagNameNS(this.ns, 't');
+            let r = '';
+            for (let i = 0; i < ts.length; i++) r += ts[i].textContent || '';
+            return r.trim();
+        }
+
+        _replaceInParagraph(paraNode, newText) {
+            const runs = paraNode.getElementsByTagNameNS(this.ns, 'r');
+            if (runs.length === 0) {
+                const r = this.xmlDoc.createElementNS(this.ns, 'w:r');
+                const t = this.xmlDoc.createElementNS(this.ns, 'w:t');
+                t.setAttribute('xml:space', 'preserve');
+                t.textContent = newText;
+                r.appendChild(t);
+                paraNode.appendChild(r);
+                return;
+            }
+
+            // Сохраняем rPr первого run
+            const firstRun = runs[0];
+            const rPr = firstRun.getElementsByTagNameNS(this.ns, 'rPr')[0];
+            const rPrClone = rPr ? rPr.cloneNode(true) : null;
+
+            // Удаляем все runs кроме первого
+            for (let i = runs.length - 1; i > 0; i--) {
+                runs[i].parentNode.removeChild(runs[i]);
+            }
+
+            // Обновляем текст
+            const ts = firstRun.getElementsByTagNameNS(this.ns, 't');
+            for (let i = ts.length - 1; i > 0; i--) ts[i].parentNode.removeChild(ts[i]);
+
+            if (ts.length > 0) {
+                ts[0].textContent = newText;
+                ts[0].setAttribute('xml:space', 'preserve');
+            } else {
+                const t = this.xmlDoc.createElementNS(this.ns, 'w:t');
+                t.setAttribute('xml:space', 'preserve');
+                t.textContent = newText;
+                firstRun.appendChild(t);
+            }
+        }
+
+        _replaceInCell(cellNode, newText) {
+            const paras = cellNode.getElementsByTagNameNS(this.ns, 'p');
+            const lines = newText.split('\n');
+            if (paras.length === 0) return;
+
+            const firstPara = paras[0];
+            const pPr = firstPara.getElementsByTagNameNS(this.ns, 'pPr')[0];
+            const pPrClone = pPr ? pPr.cloneNode(true) : null;
+
+            const firstRun = firstPara.getElementsByTagNameNS(this.ns, 'r')[0];
+            let rPrClone = null;
+            if (firstRun) {
+                const rPr = firstRun.getElementsByTagNameNS(this.ns, 'rPr')[0];
+                rPrClone = rPr ? rPr.cloneNode(true) : null;
+            }
+
+            for (let i = paras.length - 1; i > 0; i--) paras[i].parentNode.removeChild(paras[i]);
+
+            this._replaceInParagraph(firstPara, lines[0]);
+
+            for (let i = 1; i < lines.length; i++) {
+                const np = this.xmlDoc.createElementNS(this.ns, 'w:p');
+                if (pPrClone) np.appendChild(pPrClone.cloneNode(true));
+                const nr = this.xmlDoc.createElementNS(this.ns, 'w:r');
+                if (rPrClone) nr.appendChild(rPrClone.cloneNode(true));
+                const t = this.xmlDoc.createElementNS(this.ns, 'w:t');
+                t.setAttribute('xml:space', 'preserve');
+                t.textContent = lines[i];
+                nr.appendChild(t);
+                np.appendChild(nr);
+                cellNode.appendChild(np);
+            }
+        }
+
+        // ===== ПАРСИНГ РАЗДЕЛОВ =====
+
+        _parseTitlePage() {
+            const f = {};
+            for (const p of this.paragraphs) {
+                const t = p.text, lo = t.toLowerCase(), i = p.index;
+                if (i > 30) break;
+
+                if (lo.includes('приложение') && i < 10)
+                    f['Приложение'] = this._pf(p, 'Номер приложения (правый верхний угол)');
+
+                if (lo.includes('опоп') && lo.includes('ппссз') && i < 10)
+                    f['ОПОП-ППССЗ'] = this._pf(p, 'ОПОП-ППССЗ по специальности');
+
+                if (/^\d{2}\.\d{2}\.\d{2}/.test(t) && i < 10)
+                    f['Специальность (шапка)'] = this._pf(p, 'Код и наименование специальности (верхний блок)');
+
+                if (lo.includes('рабочая программа') && i < 25)
+                    f['Тип программы'] = this._pf(p, 'Рабочая программа учебного предмета / проф. модуля (ПМ.01, ПМ.02...)');
+
+                if (/^[А-Яа-яA-Za-z]{1,6}[\.\s]\d{2}\s/.test(t) && i < 25)
+                    f['Наименование дисциплины'] = this._pf(p, 'Код и наименование дисциплины/модуля');
+
+                if (lo.includes('для специальности') && i < 25)
+                    f['Для специальности'] = this._pf(p, 'Строка "для специальности"');
+
+                if (/^\d{2}\.\d{2}\.\d{2}/.test(t) && i > 5 && i < 25 && (!f['Специальность (основная)'] || f['Специальность (основная)'].paraIndex !== i))
+                    f['Специальность (основная)'] = this._pf(p, 'Специальность (основной блок титульника)');
+
+                if (lo.includes('базовая подготовка') || lo.includes('углубленная подготовка'))
+                    f['Уровень подготовки'] = this._pf(p, 'Базовая / углубленная подготовка');
+
+                if (lo.includes('год начала подготовки'))
+                    f['Год начала подготовки'] = this._pf(p, 'Год начала подготовки УП');
+            }
+            if (Object.keys(f).length) this.sections['1. ТИТУЛЬНЫЙ ЛИСТ'] = { icon:'fa-id-card', description:'Титульная страница', fields:f };
+        }
+
+        _parsePassport() {
+            const f = {};
+            let inside = false;
+            for (const p of this.paragraphs) {
+                const t = p.text, lo = t.toLowerCase();
+                if (lo.includes('паспорт рабочей программы')) { inside = true; f['Заголовок паспорта'] = this._pf(p, 'Заголовок раздела паспорта'); continue; }
+                if (!inside) continue;
+                if (lo.includes('структура и содержание') || lo.includes('структура исодержание')) break;
+
+                if (lo.includes('область применения')) {
+                    const bl = this._collectBlock(p.index + 1, ['место учебного','место дисциплины','1.2']);
+                    f['Область применения'] = this._bf(bl, 'Область применения (наименование дисциплины, специальность)');
+                }
+                if (lo.includes('место учебного предмета') || lo.includes('место дисциплины')) {
+                    const bl = this._collectBlock(p.index + 1, ['планируемые результаты','1.3','знать']);
+                    f['Место в структуре ОПОП'] = this._bf(bl, 'Место учебного предмета в структуре ОПОП-ППССЗ');
+                }
+                if (lo.startsWith('знать') || lo.includes('знать/понимать')) {
+                    const bl = this._collectBlock(p.index, ['уметь:','использовать приобретенные']);
+                    f['Знать/понимать'] = this._bf(bl, 'Результаты: знать/понимать');
+                }
+                if (lo.startsWith('уметь')) {
+                    const bl = this._collectBlock(p.index, ['использовать приобретенные','в результате освоения']);
+                    f['Уметь'] = this._bf(bl, 'Результаты: уметь');
+                }
+                if (t.startsWith('ЛР')) {
+                    const code = t.substring(0, t.indexOf(' ') > 0 ? Math.min(t.indexOf(' '), 8) : 6);
+                    f[code] = this._pf(p, 'Личностный результат ' + code);
+                }
+            }
+            this._parseCompTable(f);
+            if (Object.keys(f).length) this.sections['2. ПАСПОРТ (ОК, ПК, ЛР)'] = { icon:'fa-clipboard-list', description:'Результаты освоения, компетенции', fields:f };
+        }
+
+        _parseCompTable(f) {
+            for (const tbl of this.tables) {
+                if (tbl.rows.length < 2) continue;
+                const h = tbl.rows[0].map(c => c.text).join(' ').toLowerCase();
+                if (h.includes('компетенц') || h.includes('код и наименование')) {
+                    for (let r = 1; r < tbl.rows.length; r++) {
+                        const row = tbl.rows[r];
+                        const ft = (row[0]?.text || '').trim();
+                        if (ft.startsWith('ОК') || ft.startsWith('ПК')) {
+                            const code = ft.split('\n')[0].substring(0, 30).trim();
+                            if (row.length > 1 && row[1].text.trim())
+                                f[code + ' — Личн./метапредм.'] = { type:'table_cell', tableIndex:tbl.index, rowIndex:r, colIndex:1, cellNode:row[1].node, currentValue:row[1].text, description:code+': Личностные, метапредметные' };
+                            if (row.length > 2 && row[2].text.trim())
+                                f[code + ' — Предметные'] = { type:'table_cell', tableIndex:tbl.index, rowIndex:r, colIndex:2, cellNode:row[2].node, currentValue:row[2].text, description:code+': Предметные результаты' };
+                        }
+                    }
+                }
+            }
+        }
+
+        _parseThematicPlan() {
+            const f = {};
+            for (const tbl of this.tables) {
+                if (tbl.rows.length < 2) continue;
+                const h = tbl.rows[0].map(c => c.text).join(' ').toLowerCase();
+
+                if (h.includes('вид учебной работы')) {
+                    for (let r = 1; r < tbl.rows.length; r++) {
+                        const row = tbl.rows[r];
+                        const label = (row[0]?.text || '').trim();
+                        if (label && row.length > 1) {
+                            const lc = row[row.length - 1];
+                            if (lc.text.trim())
+                                f['Часы: ' + label.substring(0,50)] = { type:'table_cell', tableIndex:tbl.index, rowIndex:r, colIndex:row.length-1, cellNode:lc.node, currentValue:lc.text.trim(), description:'Объем часов: '+label };
+                        }
+                    }
+                }
+
+                if (h.includes('наименование разделов')) {
+                    for (let r = 1; r < tbl.rows.length; r++) {
+                        const row = tbl.rows[r];
+                        if (row[0]?.text?.trim()?.length > 3)
+                            f['Тема (стр.'+r+')'] = { type:'table_cell', tableIndex:tbl.index, rowIndex:r, colIndex:0, cellNode:row[0].node, currentValue:row[0].text.trim(), description:'Наименование раздела/темы (строка '+r+')' };
+                        if (row.length > 1 && row[1]?.text?.trim()?.length > 3)
+                            f['Содержание (стр.'+r+')'] = { type:'table_cell', tableIndex:tbl.index, rowIndex:r, colIndex:1, cellNode:row[1].node, currentValue:row[1].text.trim(), description:'Содержание учебного материала (строка '+r+')' };
+                        if (row.length > 2 && row[2]?.text?.trim())
+                            f['Часы (стр.'+r+')'] = { type:'table_cell', tableIndex:tbl.index, rowIndex:r, colIndex:2, cellNode:row[2].node, currentValue:row[2].text.trim(), description:'Объем часов (строка '+r+')' };
+                        if (row.length > 3 && row[3]?.text?.trim())
+                            f['Компетенции (стр.'+r+')'] = { type:'table_cell', tableIndex:tbl.index, rowIndex:r, colIndex:3, cellNode:row[3].node, currentValue:row[3].text.trim(), description:'Компетенции (строка '+r+')' };
+                    }
+                }
+            }
+            if (Object.keys(f).length) this.sections['3. ТЕМАТИЧЕСКИЙ ПЛАН'] = { icon:'fa-table', description:'Объем часов, содержание, компетенции', fields:f };
+        }
+
+        _parseConditions() {
+            const f = {};
+            let inside = false;
+            for (const p of this.paragraphs) {
+                const lo = p.text.toLowerCase();
+                if (lo.includes('условия реализации')) { inside = true; continue; }
+                if (!inside) continue;
+                if (lo.includes('контроль и оценка') || lo.startsWith('4 контроль')) break;
+
+                if (lo.includes('реализуется в учебном кабинете') || (lo.includes('кабинет') && lo.includes('реализуется')))
+                    f['Учебный кабинет'] = this._pf(p, 'Наименование учебного кабинета');
+                if (lo.includes('оборудование учебного')) {
+                    const bl = this._collectBlock(p.index + 1, ['технические средства','наименование специального']);
+                    f['Оборудование'] = this._bf(bl, 'Оборудование учебного кабинета');
+                }
+                if (lo.includes('лаборатор') && !lo.includes('работ'))
+                    f['Лаборатория'] = this._pf(p, 'Лаборатория');
+                if (lo.includes('мастерск'))
+                    f['Мастерские'] = this._pf(p, 'Мастерские');
+                if (lo.includes('основные источники')) {
+                    const bl = this._collectBlock(p.index + 1, ['дополнительные источники','дополнительная литература']);
+                    f['Основная литература'] = this._bf(bl, 'Основные источники (литература)');
+                }
+                if (lo.includes('дополнительные источники') || lo.includes('дополнительная литература')) {
+                    const bl = this._collectBlock(p.index + 1, ['периодические издания','перечень профессиональных','интернет-ресурс']);
+                    f['Дополнительная литература'] = this._bf(bl, 'Дополнительные источники');
+                }
+                if (lo.includes('периодические издания')) {
+                    const bl = this._collectBlock(p.index + 1, ['перечень профессиональных','контроль','интернет']);
+                    f['Периодические издания'] = this._bf(bl, 'Периодические издания');
+                }
+                if (lo.includes('перечень профессиональных') || lo.includes('информационных справочных')) {
+                    const bl = this._collectBlock(p.index + 1, ['контроль и оценка','4 контроль','перечень используемых']);
+                    f['Информационные ресурсы'] = this._bf(bl, 'Профессиональные БД и справочные системы');
+                }
+            }
+            if (Object.keys(f).length) this.sections['4. УСЛОВИЯ РЕАЛИЗАЦИИ'] = { icon:'fa-cogs', description:'Кабинеты, литература, ресурсы', fields:f };
+        }
+
+        _parseControl() {
+            const f = {};
+            for (const tbl of this.tables) {
+                if (tbl.rows.length < 2) continue;
+                const h = tbl.rows[0].map(c => c.text).join(' ').toLowerCase();
+                if ((h.includes('оценочн') || h.includes('контрол')) && (h.includes('компетенц') || h.includes('раздел'))) {
+                    for (let r = 1; r < tbl.rows.length; r++) {
+                        const row = tbl.rows[r];
+                        for (let c = 0; c < row.length; c++) {
+                            if (row[c]?.text?.trim())
+                                f['Контроль (стр.'+r+', ст.'+c+')'] = { type:'table_cell', tableIndex:tbl.index, rowIndex:r, colIndex:c, cellNode:row[c].node, currentValue:row[c].text.trim(), description:'Таблица контроля (строка '+r+', столбец '+c+')' };
+                        }
+                    }
+                }
+            }
+            if (Object.keys(f).length) this.sections['5. КОНТРОЛЬ И ОЦЕНКА'] = { icon:'fa-check-circle', description:'Таблица контроля и оценки', fields:f };
+        }
+
+        _parseMethods() {
+            const f = {};
+            for (const p of this.paragraphs) {
+                const lo = p.text.toLowerCase();
+                if (lo.includes('пассивные') && lo.includes(':'))
+                    f['Пассивные методы'] = this._pf(p, 'Пассивные методы обучения');
+                if (lo.includes('активные') && lo.includes('интерактивные'))
+                    f['Активные/интерактивные'] = this._pf(p, 'Активные и интерактивные методы');
+            }
+            if (Object.keys(f).length) this.sections['6. МЕТОДЫ ОБУЧЕНИЯ'] = { icon:'fa-chalkboard-teacher', description:'Перечень методов обучения', fields:f };
+        }
+
+        // Вспомогательные
+        _pf(p, desc) { return { type:'paragraph', paraIndex:p.index, paraNode:p.node, currentValue:p.text, description:desc }; }
+        _bf(paras, desc) { return { type:'text_block', paragraphs:paras, currentValue:paras.map(p=>p.text).join('\n'), description:desc }; }
+
+        _collectBlock(startIdx, stopWords, max=50) {
+            const result = [];
+            for (let i = startIdx; i < Math.min(startIdx+max, this.paragraphs.length); i++) {
+                const p = this.paragraphs[i], lo = p.text.toLowerCase();
+                if (stopWords.some(sw => lo.includes(sw.toLowerCase())) && result.length > 0) break;
+                if (/^[1-5][\.\s]/.test(p.text) && p.text.length > 5 && result.length > 0) break;
+                if ((lo.includes('структура и содержание') || lo.includes('условия реализации') || lo.includes('контроль и оценка') || lo.includes('перечень используемых')) && result.length > 0) break;
+                if (p.text) result.push(p);
+            }
+            return result;
+        }
+
+        async applyChanges(changes) {
+            for (const sn in changes) {
+                const sd = this.sections[sn];
+                if (!sd) continue;
+                for (const fn in changes[sn]) {
+                    const nv = changes[sn][fn], fi = sd.fields[fn];
+                    if (!fi) continue;
+                    if (fi.type === 'paragraph') this._replaceInParagraph(fi.paraNode, nv);
+                    else if (fi.type === 'table_cell') this._replaceInCell(fi.cellNode, nv);
+                    else if (fi.type === 'text_block') {
+                        const lines = nv.split('\n'), paras = fi.paragraphs;
+                        for (let j = 0; j < Math.min(paras.length, lines.length); j++) this._replaceInParagraph(paras[j].node, lines[j]);
+                        for (let j = lines.length; j < paras.length; j++) this._replaceInParagraph(paras[j].node, '');
+                    }
+                }
+            }
+            const xml = new XMLSerializer().serializeToString(this.xmlDoc);
+            this.zip.file('word/document.xml', xml);
+            return await this.zip.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        }
+    }
+
+    // ===================== APP =====================
+    let parser = null, originalFileName = '', currentSection = null, allChanges = {}, currentUser = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupFileUpload();
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            const ui = document.getElementById('user-info'), btn = document.getElementById('btn-auth');
+            if (user) { ui.textContent = user.displayName || user.email; ui.style.display = 'inline'; btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Выйти'; }
+            else { ui.style.display = 'none'; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Войти'; }
+        });
+    });
+
+    function handleAuth() {
+        if (currentUser) auth.signOut().then(() => showToast('Вы вышли','info'));
+        else auth.signInWithPopup(googleProvider).then(() => showToast('Вы вошли','success')).catch(e => showToast('Ошибка: '+e.message,'error'));
+    }
+
+    function setupFileUpload() {
+        const area = document.getElementById('upload-area'), fi = document.getElementById('file-input');
+        area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
+        area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+        area.addEventListener('drop', e => { e.preventDefault(); area.classList.remove('drag-over'); if(e.dataTransfer.files.length && e.dataTransfer.files[0].name.endsWith('.docx')) processFile(e.dataTransfer.files[0]); else showToast('Загрузите .docx файл','error'); });
+        fi.addEventListener('change', e => { if(e.target.files.length) processFile(e.target.files[0]); });
+    }
+
+    async function processFile(file) {
+        originalFileName = file.name;
+        document.getElementById('file-info').textContent = '📎 ' + file.name + ' (' + (file.size/1024).toFixed(1) + ' КБ)';
+        document.getElementById('file-info').style.display = 'block';
+        showSection('parsing-section');
+        updateProgress(10, 'Чтение файла...');
+        try {
+            const ab = await file.arrayBuffer();
+            updateProgress(30, 'Разбор XML...');
+            parser = new DocxParser();
+            updateProgress(50, 'Анализ разделов...');
+            const sections = await parser.parse(ab);
+            updateProgress(80, 'Построение интерфейса...');
+            allChanges = {};
+            buildEditor(sections);
+            updateProgress(100, 'Готово!');
+            setTimeout(() => { showSection('editor-section'); showToast('Найдено разделов: '+Object.keys(sections).length,'success'); }, 400);
+        } catch(err) { console.error(err); showToast('Ошибка: '+err.message,'error'); showSection('upload-section'); }
+    }
+
+    function buildEditor(sections) {
+        const sl = document.getElementById('sections-list'), ep = document.getElementById('editor-panels');
+        sl.innerHTML = ''; ep.innerHTML = '';
+        const names = Object.keys(sections);
+        names.forEach((sn, idx) => {
+            const sd = sections[sn], fc = Object.keys(sd.fields).length;
+            const li = document.createElement('li');
+            li.innerHTML = '<i class="fas '+(sd.icon||'fa-folder')+'"></i><span>'+sn+'</span><span class="section-badge">'+fc+'</span>';
+            li.dataset.section = sn;
+            li.onclick = () => activateSection(sn);
+            sl.appendChild(li);
+
+            const panel = document.createElement('div');
+            panel.className = 'editor-panel';
+            panel.dataset.section = sn;
+
+            let html = '<div class="panel-header"><h2><i class="fas '+(sd.icon||'fa-folder')+'"></i> '+sn+'</h2><p>'+(sd.description||'')+'</p></div>';
+
+            for (const fn in sd.fields) {
+                const fi = sd.fields[fn];
+                const fid = 'f_'+idx+'_'+sanitizeId(fn);
+                const isLong = fi.currentValue.length > 80 || fi.currentValue.includes('\n');
+                const tag = fi.type === 'table_cell' ? 'table' : fi.type === 'text_block' ? 'block' : 'paragraph';
+                const rows = Math.min(Math.max(fi.currentValue.split('\n').length + 1, 3), 20);
+
+                html += '<div class="field-group" id="g_'+fid+'">';
+                html += '<div class="field-label">'+escapeHtml(fn)+' <span class="tag tag-'+tag+'">'+tag+'</span></div>';
+                html += '<div class="field-description">'+(fi.description||'')+'</div>';
+
+                if (isLong) {
+                    html += '<textarea class="field-input" id="'+fid+'" data-section="'+escapeAttr(sn)+'" data-field="'+escapeAttr(fn)+'" data-original="'+escapeAttr(fi.currentValue)+'" oninput="onFieldChange(this)" rows="'+rows+'">'+escapeHtml(fi.currentValue)+'</textarea>';
+                } else {
+                    html += '<input type="text" class="field-input" id="'+fid+'" data-section="'+escapeAttr(sn)+'" data-field="'+escapeAttr(fn)+'" data-original="'+escapeAttr(fi.currentValue)+'" oninput="onFieldChange(this)" value="'+escapeAttr(fi.currentValue)+'">';
+                }
+
+                html += '<div class="field-actions"><span class="field-status" id="s_'+fid+'">Без изменений</span>';
+                html += '<button class="btn btn-sm btn-outline" onclick="resetField(\''+fid+'\')" style="margin-left:auto"><i class="fas fa-undo"></i> Сброс</button></div>';
+                html += '</div>';
+            }
+
+            panel.innerHTML = html;
+            ep.appendChild(panel);
+        });
+        if (names.length) activateSection(names[0]);
+    }
+
+    function activateSection(sn) {
+        currentSection = sn;
+        document.querySelectorAll('.sections-list li').forEach(li => li.classList.toggle('active', li.dataset.section === sn));
+        document.querySelectorAll('.editor-panel').forEach(p => p.classList.toggle('active', p.dataset.section === sn));
+    }
+
+    function onFieldChange(input) {
+        const sec = input.dataset.section, fld = input.dataset.field, orig = input.dataset.original, cur = input.value;
+        const fid = input.id, grp = document.getElementById('g_'+fid), st = document.getElementById('s_'+fid);
+
+        if (cur !== orig) {
+            if (!allChanges[sec]) allChanges[sec] = {};
+            allChanges[sec][fld] = cur;
+            input.classList.add('changed'); grp.classList.add('changed');
+            st.textContent = '✏️ Изменено'; st.className = 'field-status modified';
+        } else {
+            if (allChanges[sec]) { delete allChanges[sec][fld]; if (!Object.keys(allChanges[sec]).length) delete allChanges[sec]; }
+            input.classList.remove('changed'); grp.classList.remove('changed');
+            st.textContent = 'Без изменений'; st.className = 'field-status';
+        }
+        updateBadge();
+    }
+
+    function resetField(fid) {
+        const inp = document.getElementById(fid);
+        if (!inp) return;
+        inp.value = inp.dataset.original;
+        onFieldChange(inp);
+    }
+
+    function resetAll() {
+        if (!confirm('Сбросить все изменения?')) return;
+        document.querySelectorAll('.field-input').forEach(inp => { inp.value = inp.dataset.original; onFieldChange(inp); });
+        showToast('Все изменения сброшены','info');
+    }
+
+    function updateBadge() {
+        const total = Object.values(allChanges).reduce((s,v) => s + Object.keys(v).length, 0);
+        const b = document.getElementById('changes-badge');
+        if (total > 0) { b.textContent = total; b.style.display = 'inline'; } else b.style.display = 'none';
+        document.querySelectorAll('.sections-list li').forEach(li => {
+            const sn = li.dataset.section, has = allChanges[sn] && Object.keys(allChanges[sn]).length > 0;
+            li.classList.toggle('has-changes', has);
+            const badge = li.querySelector('.section-badge');
+            if (badge && has) badge.textContent = Object.keys(allChanges[sn]).length + ' изм.';
+        });
+    }
+
+    async function saveDocument() {
+        const total = Object.values(allChanges).reduce((s,v) => s + Object.keys(v).length, 0);
+        if (!total) { showToast('Нет изменений','warning'); return; }
+        const btn = document.getElementById('btn-save');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохраняю...';
+        try {
+            const blob = await parser.applyChanges(allChanges);
+            const fn = 'edited_' + originalFileName;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = fn; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            showToast('Файл "'+fn+'" скачан! Форматирование сохранено.','success');
+        } catch(err) { console.error(err); showToast('Ошибка: '+err.message,'error'); }
+        finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-download"></i> Сохранить и скачать'; }
+    }
+
+    async function saveToFirebase() {
+        if (!currentUser) { showToast('Войдите в аккаунт','warning'); return; }
+        const total = Object.values(allChanges).reduce((s,v) => s + Object.keys(v).length, 0);
+        try {
+            await db.collection('spo_documents').add({
+                userId: currentUser.uid,
+                userEmail: currentUser.email,
+                fileName: originalFileName,
+                changes: JSON.parse(JSON.stringify(allChanges)),
+                changesCount: total,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showToast('Сохранено в облако!','success');
+        } catch(err) { showToast('Ошибка: '+err.message,'error'); }
+    }
+
+    async function loadFromFirebase() {
+        if (!currentUser) { showToast('Войдите в аккаунт','warning'); return; }
+        try {
+            const snap = await db.collection('spo_documents').where('userId','==',currentUser.uid).orderBy('createdAt','desc').limit(20).get();
+            if (snap.empty) { showToast('Нет сохранённых документов','info'); return; }
+
+            let html = '<div style="max-height:400px;overflow-y:auto">';
+            snap.forEach(doc => {
+                const d = doc.data();
+                const date = d.createdAt ? new Date(d.createdAt.seconds*1000).toLocaleString('ru') : 'Недавно';
+                html += '<div style="padding:12px;border:1px solid var(--g200);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="applyCloudChanges(\''+doc.id+'\')">';
+                html += '<strong>'+escapeHtml(d.fileName)+'</strong><br>';
+                html += '<small>Изменений: '+d.changesCount+' | '+date+'</small>';
+                html += '</div>';
+            });
+            html += '</div>';
+
+            document.getElementById('modal-title').textContent = 'Облачные документы';
+            document.getElementById('modal-body').innerHTML = html;
+            document.getElementById('modal-footer').innerHTML = '<button class="btn btn-outline" onclick="closeModal()">Закрыть</button>';
+            document.getElementById('modal-overlay').style.display = 'flex';
+        } catch(err) { showToast('Ошибка: '+err.message,'error'); }
+    }
+
+    async function applyCloudChanges(docId) {
+        try {
+            const doc = await db.collection('spo_documents').doc(docId).get();
+            if (!doc.exists) { showToast('Документ не найден','error'); return; }
+            const data = doc.data();
+            if (!parser) { showToast('Сначала загрузите DOCX файл','warning'); closeModal(); return; }
+
+            allChanges = data.changes || {};
+            // Применяем к полям
+            document.querySelectorAll('.field-input').forEach(inp => {
+                const sec = inp.dataset.section, fld = inp.dataset.field;
+                if (allChanges[sec] && allChanges[sec][fld]) {
+                    inp.value = allChanges[sec][fld];
+                } else {
+                    inp.value = inp.dataset.original;
+                }
+                onFieldChange(inp);
+            });
+
+            closeModal();
+            showToast('Изменения из облака применены!','success');
+        } catch(err) { showToast('Ошибка: '+err.message,'error'); }
+    }
+
+    function loadNewFile() {
+        showSection('upload-section');
+        parser = null; allChanges = {}; originalFileName = '';
+        document.getElementById('file-input').value = '';
+        document.getElementById('file-info').style.display = 'none';
+    }
+
+    // UI HELPERS
+    function showSection(id) { ['upload-section','parsing-section','editor-section'].forEach(s => document.getElementById(s).style.display = s===id?'':'none'); }
+    function updateProgress(pct, txt) { document.getElementById('progress-fill').style.width = pct+'%'; document.getElementById('parsing-status').textContent = txt; }
+    function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+    function showToast(msg, type='info') {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div'); t.className = 'toast '+type;
+        const icons = {success:'fa-check-circle',error:'fa-exclamation-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};
+        t.innerHTML = '<i class="fas '+(icons[type]||icons.info)+'"></i> '+msg;
+        c.appendChild(t);
+        setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(100%)'; setTimeout(()=>t.remove(),300); }, 4000);
+    }
+
+    function sanitizeId(s) { return s.replace(/[^a-zA-Zа-яА-Я0-9]/g,'_').substring(0,50); }
+    function escapeHtml(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+    function escapeAttr(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    </script>
+</body>
+</html>
